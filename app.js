@@ -6,6 +6,8 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 3000;
+
+// Middlewares Routes Placed Here
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -15,7 +17,7 @@ app.use(session({
     saveUninitialized: true,
 }));
 
-// Middlewares & Routes Placed Here
+
 app.use('/', indexRoutes);
 
 
