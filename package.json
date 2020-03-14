@@ -15,7 +15,9 @@
         "express": "^4.17.1",
         "express-session": "^1.17.0",
         "joi": "^14.3.1",
+        "joi-decimal": "^1.1.2",
         "mongoose": "^5.9.3",
+        "mongoose-float": "^1.0.4",
         "multer": "^1.4.2",
         "nodemon": "^2.0.2"
     }
