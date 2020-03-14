@@ -15,9 +15,12 @@ app.use(session({
     saveUninitialized: true,
 }));
 
+// Middlewares & Routes Placed Here
 app.use('/', indexRoutes);
 
-mongoose.connect('mongodb://localhost:27017/MovieTheater', { useNewUrlParser: true, useUnifiedTopology: true });
+
+//Database Connection
+mongoose.connect('mongodb://localhost:27017/Theater', { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
 
 db.on('error', () => {
@@ -29,6 +32,7 @@ db.once('open', () => {
 });
 
 
+//Configure NodeServer To Connect on PORT
 app.listen(process.env.PORT || PORT, () => {
     console.log(`Server is Running on Port: ${PORT}`);
 });

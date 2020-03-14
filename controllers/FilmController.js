@@ -146,10 +146,11 @@ exports.addFilm = async(req, res) => {
 exports.updateFilmById = async(req, res) => {
     let idFilm = req.params.idFilm;
     try {
-
         let film = await Film.findById(idFilm);
         if (film != null) {
+            let dataUpdated = {};
 
+            let update = await Film.findByIdAndUpdate(idFilm, dataUpdated);
         } else {
 
         }
