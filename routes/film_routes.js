@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
-router.get('/', (req, res) => {
-    console.log(req.query);
-});
+const FilmController = require('../controllers/FilmController');
+router.get('/', FilmController.getFilms);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Film = require('../models/TicketSchema');
-
+const moment = require('moment');
+const imageMimeTypes = ['image/jpeg', 'image/png'];
 /*
  **
  **
@@ -11,13 +12,27 @@ const Film = require('../models/TicketSchema');
 
 exports.getFilms = async(req, res) => {
     try {
-        let listofFilms = await Film.find();
-        if (listofFilms != null) {
+        let searchFilter = {};
+        let Filter = req.query;
+        if (Object.keys(req.query).length !== 0) {
+            if ((Filter.film_name != undefined) && (Filter.film_name != '')) {
+                searchFilter.film_name = new RegExp(Filter.film_name, 'i');
+            }
+            if ((Filter.film_show_date != undefined) && (Filter.film_show_date != '') &&
+                (moment(Filter.film_show_date, 'YYYY-MM-DD HH:mm', true).isValid())) {
+                searchFilter.film_show_date = Filter.film_show_date;
+            }
+            if ((Filter.film_gender != undefined) && (Filter.film_gender != '')) {
+                searchFilter.film_gender = Filter.film_gender;
+            }
+
+        }
+        let listofFilms = await Film.find(searchFilter);
+        if (Object.keys(listofFilms).length !== 0) {
             res.json(listofFilms);
-            console.log(listofFilms);
         } else {
             res.send('No Movies Found');
-            console.log('No Movies Found');
+            console.log(searchFilter);
         }
     } catch (err) {
         console.log('Error Message :' + err);
@@ -25,11 +40,12 @@ exports.getFilms = async(req, res) => {
 
 }
 
-exports.getFilmsByID = (req, res) => {
+exports.getFilmsByID = async(req, res) => {
     try {
+
         let idFilm = req.params.idFilm;
         let FilmInfo = await Film.findById(idFilm);
-        if (FilmInfo != null) {
+        if (Object.keys(FilmInfo).length !== 0) {
             res.json(FilmInfo);
             console.log(FilmInfo);
         } else {
@@ -42,7 +58,7 @@ exports.getFilmsByID = (req, res) => {
     }
 }
 
-exports.getFilmByName = (req, res) => {
+exports.getFilmByName = async(req, res) => {
     try {
         let searchOption = {};
         let name = req.query.name;
@@ -50,7 +66,7 @@ exports.getFilmByName = (req, res) => {
             searchOption.film_name = new RegExp(name, 'i');
         }
         let listofFilms = await Film.find(searchOption);
-        if (listofFilms != null) {
+        if (Object.keys(listofFilms).length !== 0) {
             res.json(listofFilms);
             console.log(listofFilms);
         } else {
@@ -62,12 +78,12 @@ exports.getFilmByName = (req, res) => {
     }
 }
 
-exports.getFilmByGender = (req, res) => {
+exports.getFilmByGender = async(req, res) => {
     try {
         let gender = req.query.gender;
         let listofFilms = await Film.find()
             .where('film_gender').equals(gender);
-        if (listofFilms != null) {
+        if (Object.keys(listofFilms).length !== 0) {
             res.json(listofFilms);
             console.log(listofFilms);
         } else {
@@ -79,12 +95,12 @@ exports.getFilmByGender = (req, res) => {
     }
 }
 
-exports.getFilmByShowDate = (req, res) => {
+exports.getFilmByShowDate = async(req, res) => {
     try {
         let showDate = req.query.show_date;
         let listofFilms = await Film.find()
             .where('film_show_date').gte(showDate);
-        if (listofFilms != null) {
+        if (Object.keys(listofFilms).length !== 0) {
             res.json(listofFilms);
             console.log(listofFilms);
         } else {
@@ -112,7 +128,6 @@ exports.addFilm = async(req, res) => {
 
     let filmToAdd = {
         film_name: req.body.film_name,
-        film_cover: req.body.film_cover,
         film_description: req.body.film_description,
         film_gender: req.body.film_gender,
         film_show_date: req.body.film_show_date,
@@ -120,7 +135,7 @@ exports.addFilm = async(req, res) => {
     }
 
     let film = new Film(filmToAdd);
-
+    saveFilmCover(film, req.body.film_cover);
     try {
         let addError = Film.validSchemaForm(filmToAdd);
         if (addError.error == null) {
@@ -170,4 +185,26 @@ exports.updateFilmById = async(req, res) => {
 
 exports.deleteFilmById = (req, res) => {
 
+}
+
+
+
+
+/*
+ **
+ **
+ ** Extra Needed Functions
+ **
+ **
+ */
+
+
+function saveFilmCover(film, coverEncoded) {
+    if (coverEncoded == null) {
+        const cover = JSON.parse(coverEncoded);
+        if (cover != null && imageMimeTypes.includes(cover.type)) {
+            film.film_cover = new Buffer.from(cover.data, 'base64');
+            film.film_cover_type = cover.type;
+        }
+    }
 }
