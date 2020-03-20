@@ -9,7 +9,7 @@ var UserSchema = new Schema({
         required: true
     },
     user_birthday: {
-        type: Date,
+        type: String,
         required: true
     },
     user_phone: {
@@ -38,12 +38,12 @@ var UserSchema = new Schema({
 UserSchema.methods.validSchemaForm = (obj) => {
     let validSchema = Joi.object().keys({
         user_fullname: Joi.string().trim().max(40).required(),
-        user_birthday: Joi.Date().trim().required(),
+        user_birthday: Joi.string().trim().required(),
         user_phone: Joi.string().trim().min(8).max(8).required(),
         user_address: Joi.string().trim().min(3).max(15).required(),
-        email: Joi.email().trim().required(),
-        password: Joi.password().trim().min(8).max(15).required(),
-        role: Joi.trim().string().required()
+        email: Joi.string().trim().email().required(),
+        password: Joi.string().trim().min(8).max(15).required(),
+        role: Joi.string().trim().required()
     });
     return Joi.validate(obj, validSchema);
 };

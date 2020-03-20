@@ -7,6 +7,7 @@ const app = express();
 const PORT = 3000;
 const indexRoutes = require('./routes/index');
 const filmsRoute = require('./routes/film_routes');
+const adminRoute = require('./routes/admin_routes');
 
 // Middlewares Routes Placed Here
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -21,9 +22,10 @@ app.use(session({
 
 app.use('/', indexRoutes);
 app.use('/Films', filmsRoute);
+app.use('/Admin',adminRoute);
 
 //Database Connection
-mongoose.connect('mongodb://localhost:27017/Theater', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb://localhost:27017/Theater', { useNewUrlParser: true, useUnifiedTopology: true ,useFindAndModify:true});
 const db = mongoose.connection;
 
 db.on('error', () => {
