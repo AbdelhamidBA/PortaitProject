@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const Joi = require('joi');
+const Tickets = require('./TicketSchema');
 
 const FilmSchema = new Schema({
     film_name: { type: String, unique: true, required: true },
@@ -31,5 +32,38 @@ FilmSchema.virtual('coverImagePath').get(function() {
         return `data:${this.film_cover_type};charset=utf-8;base64,${this.film_cover.toString('base64')}`;
     }
 });
+
+FilmSchema.pre('remove', function(next) {
+    let soldticket = 0;
+    Tickets.find({ id_Film: this.id }, (err, result) => {
+        if (err) {
+            next(err);
+        } else if (result.length > 0) {
+            result.forEach(function(ticket) {
+                if (ticket.sold !== 0) {
+                    soldticket += 1;
+                }
+            });
+            if (soldticket !== 0) {
+                next(new Error('Failed to Delete: This Film has sold tickets'));
+            }
+        } else {
+            next();
+        }
+    });
+});
+
+FilmSchema.post('remove', function(next) {
+    Tickets.remove({ id_Film: this.id }, function(err) {
+        if (err) {
+            next(err);
+        } else {
+            next();
+        }
+    });
+});
+
+
+
 
 module.exports = mongoose.model('Films', FilmSchema);
