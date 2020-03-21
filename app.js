@@ -11,11 +11,10 @@ const filmsRoute = require('./routes/film_routes');
 const adminRoute = require('./routes/admin_routes');
 
 const corsOptions = {
-    origin: 'http://localhost:4200/',
-    optionsSuccessStatus: 200
-}
-
-// Middlewares Routes Placed Here
+        origin: 'http://localhost:4200/',
+        optionsSuccessStatus: 200
+    }
+    // Middlewares Routes Placed Here
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -27,11 +26,14 @@ app.use(session({
 
 app.use('/public', express.static('public'));
 app.use('/', indexRoutes);
+
 app.use('/api/film', filmsRoute);
 app.use('/api/admin', adminRoute);
 app.use(cors(corsOptions));
+app.use('/Films', filmsRoute);
+app.use('/Admin', adminRoute);
 //Database Connection
-mongoose.connect('mongodb://localhost:27017/Theater', { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect('mongodb://localhost:27017/Theater', { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: true });
 const db = mongoose.connection;
 
 db.on('error', () => {
