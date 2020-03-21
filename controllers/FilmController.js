@@ -1,8 +1,18 @@
 const mongoose = require('mongoose');
 const Film = require('../models/TicketSchema');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const moment = require('moment');
 const imageMimeTypes = ['image/jpeg', 'image/png'];
-
+const uploadPath = path.join('public', Book.coverImageBasePath);
+const upload = multer({
+    dest: uploadPath,
+    fileFilter: (req, file, callback) => {
+        callback(null, imageMimeTypes.includes(file.mimetype));
+    }
+});
+const url = 'http://localhost:3000/public/';
 
 /*
  **
@@ -34,7 +44,7 @@ exports.getFilms = async(req, res) => {
         if (Object.keys(listofFilms).length !== 0) {
             res.json(listofFilms);
         } else {
-            res.send('No Movies Found');
+            res.json(listofFilms);
             console.log(searchFilter);
         }
     } catch (err) {
@@ -43,7 +53,7 @@ exports.getFilms = async(req, res) => {
 
 }
 
-exports.getFilmsByID = async(req, res) => {
+exports.getFilmByID = async(req, res) => {
     try {
 
         let idFilm = req.params.idFilm;
@@ -61,7 +71,7 @@ exports.getFilmsByID = async(req, res) => {
     }
 }
 
-exports.getFilmByName = async(req, res) => {
+exports.getFilmsByName = async(req, res) => {
     try {
         let searchOption = {};
         let name = req.query.name;
@@ -73,32 +83,16 @@ exports.getFilmByName = async(req, res) => {
             res.json(listofFilms);
             console.log(listofFilms);
         } else {
-            //res.render();
-            console.log('No Movies Found');
-        }
-    } catch (err) {
-        console.log('Error Message :' + err);
-    }
-}
-
-exports.getFilmByGender = async(req, res) => {
-    try {
-        let gender = req.query.gender;
-        let listofFilms = await Film.find()
-            .where('film_gender').equals(gender);
-        if (Object.keys(listofFilms).length !== 0) {
             res.json(listofFilms);
-            console.log(listofFilms);
-        } else {
-            //res.render();
-            console.log('No Movies Found');
         }
     } catch (err) {
         console.log('Error Message :' + err);
     }
 }
 
-exports.getFilmByShowDate = async(req, res) => {
+
+
+exports.getFilmsByShowDate = async(req, res) => {
     try {
         let showDate = req.query.show_date;
         let listofFilms = await Film.find()
@@ -107,8 +101,7 @@ exports.getFilmByShowDate = async(req, res) => {
             res.json(listofFilms);
             console.log(listofFilms);
         } else {
-            //res.render();
-            console.log('No Movies Found');
+            res.json(listofFilms);
         }
     } catch (err) {
         console.log('Error Message :' + err);
@@ -128,9 +121,11 @@ exports.getFilmByShowDate = async(req, res) => {
 exports.addFilm = async(req, res) => {
 
     //Still Missing FileUpload
+    const film_cover = req.file != null ? req.file.filename : null;
 
     let filmToAdd = {
         film_name: req.body.film_name,
+        film_cover: url + film_cover,
         film_description: req.body.film_description,
         film_gender: req.body.film_gender,
         film_show_date: req.body.film_show_date,
@@ -138,18 +133,34 @@ exports.addFilm = async(req, res) => {
     }
 
     let film = new Film(filmToAdd);
-    saveFilmCover(film, req.body.film_cover);
+    //saveFilmCover(film, req.body.film_cover);
     try {
         let addError = Film.validSchemaForm(filmToAdd);
         if (addError.error == null) {
             let added = await film.save();
+            res.json({
+                film: added,
+                message: `${added.film_name} Sucessfully Added`,
+                error: false
+            });
         } else {
-            //res.render();
-            console.log(addError);
+            if (film.film_cover != null) {
+                removeFilmCover(film.film_cover);
+            }
+
+            res.json({
+                film: null,
+                message: `${addError.error}`,
+                error: true
+            });
         }
 
     } catch (err) {
-        console.log(err);
+        res.json({
+            film: null,
+            message: err,
+            error: true
+        });
     }
 }
 
@@ -164,10 +175,12 @@ exports.addFilm = async(req, res) => {
 exports.updateFilmById = async(req, res) => {
     let film;
     let idFilm = req.params.idFilm;
+    const film_cover = req.file != null ? req.file.filename : null;
     try {
         film = await Film.findById(idFilm);
         let dataUpdated = {
             film_name: req.body.film_name,
+            film_cover: url + film_cover,
             film_description: req.body.film_description,
             film_gender: req.body.film_gender,
             film_show_date: req.body.film_show_date,
@@ -175,24 +188,37 @@ exports.updateFilmById = async(req, res) => {
         };
 
         film.film_name = dataUpdated.film_name;
+        film.film_cover = dataUpdated.film_cover;
         film.film_description = dataUpdated.film_description;
         film.film_gender = dataUpdated.film_gender;
         film.film_show_date = dataUpdated.film_show_date;
         film.film_duration = dataUpdated.film_duration;
+        let filmUpdated = await film.save();
 
-        if (req.body.film_cover != null && req.body.film_cover != '') {
-            saveFilmCover(film, req.body.film_cover);
-        }
-        await film.save();
-        // Here Integration
-        console.log("updated");
-
-    } catch {
-        if (Object.keys(film).length !== 0) {
-            res.status(404);
+        if (Object.keys(filmUpdated).length !== 0) {
+            res.json({
+                film: filmUpdated,
+                message: `Film Sucessfully Updated`,
+                error: false
+            });
         } else {
-            //res.render();
-            console.log('Error Updating Film');
+
+            res.json({
+                film: null,
+                message: `Error Updating Film`,
+                error: true
+            });
+        }
+
+    } catch (err) {
+        if (Object.keys(film).length === 0) {
+            res.sendStatus(404);
+        } else {
+            res.json({
+                film: null,
+                message: `${err}`,
+                error: true
+            });
         }
     }
 }
@@ -208,21 +234,91 @@ exports.updateFilmById = async(req, res) => {
 exports.deleteFilmById = async(req, res) => {
     let filmID = req.params.idFilm;
     let film;
+    let filmname;
     try {
         film = await Film.findById(filmID);
         //Check if the film to delete has sold tickets or no
         //if it has sold tickets can't remove the film
         //else we delete the film and all its associated tickets
+        filmname = film.film_name;
         await film.remove();
-        console.log('removed');
-    } catch {
+        res.json({
+            film: filmUpdated,
+            message: `${filmname} Sucessfully Deleted`,
+            error: false
+        });
+    } catch (err) {
         if (Object.keys(film).length == 0) {
-            res.status(404);
+            res.sendStatus(404);
         } else {
-
+            res.json({
+                film: null,
+                message: `${err}`,
+                error: true
+            });
         }
     }
 }
+
+
+/*
+ **
+ **
+ **  Recommender system
+ **
+ **
+ */
+
+async function Recommender_SimilarFilm(idFilm) {
+    let idFilm = req.params.idFilm;
+    let filmgender;
+    let listofFilms;
+    try {
+        let film = await Film.findById(idFilm);
+        if (Object.keys(film).length !== 0) {
+            filmgender = film.film_gender;
+            listofFilms = getFilmByGender(filmgender);
+            return listofFilms;
+        }
+    } catch {
+        console.log('Error Recommender SimilarFilm');
+    }
+}
+
+async function Recommender_SimilarFilm(idFilm) {
+    let idFilm = req.params.idFilm;
+    let filmgender;
+    let listofFilms;
+    try {
+        let film = await Film.findById(idFilm);
+        if (Object.keys(film).length !== 0) {
+            filmgender = film.film_gender;
+            listofFilms = getFilmByGender(filmgender);
+            return listofFilms;
+        }
+    } catch {
+        console.log('Error Recommender SimilarFilm');
+    }
+}
+
+async function Recommender_LastVisited(idFilm) {
+    let idFilm = req.params.idFilm;
+    let filmgender;
+    let listofFilms;
+    try {
+        let film = await Film.findById(idFilm);
+        if (Object.keys(film).length !== 0) {
+            filmgender = film.film_gender;
+            listofFilms = getFilmByGender(filmgender);
+            return listofFilms;
+        }
+    } catch {
+        console.log('Error Recommender SimilarFilm');
+    }
+}
+
+
+
 
 
 /*
@@ -232,7 +328,6 @@ exports.deleteFilmById = async(req, res) => {
  **
  **
  */
-
 exports.countFilms = async(req, res) => {
     try {
         let count = await Film.countDocuments();
@@ -245,6 +340,8 @@ exports.countFilms = async(req, res) => {
     }
 };
 
+
+
 /*
  **
  **
@@ -253,13 +350,35 @@ exports.countFilms = async(req, res) => {
  **
  */
 
+// function saveFilmCover(film, coverEncoded) {
+//     if (coverEncoded !== null) {
+//         const cover = JSON.parse(coverEncoded);
+//         if (cover != null && imageMimeTypes.includes(cover.type)) {
+//             film.film_cover = new Buffer.from(cover.data, 'base64');
+//             film.film_cover_type = cover.type;
+//         }
+//     }
+// }
 
-function saveFilmCover(film, coverEncoded) {
-    if (coverEncoded !== null) {
-        const cover = JSON.parse(coverEncoded);
-        if (cover != null && imageMimeTypes.includes(cover.type)) {
-            film.film_cover = new Buffer.from(cover.data, 'base64');
-            film.film_cover_type = cover.type;
+async function getFilmByGender(gender) {
+    try {
+
+        let listofFilms = await Film.find()
+            .where('film_gender').equals(gender);
+        if (Object.keys(listofFilms).length !== 0) {
+            return listofFilms;
+        } else {
+            return null;
         }
+    } catch {
+        console.log('Error Gender Function');
     }
 }
+
+function removeFilmCover(fileName) {
+    fs.unlink(path.join(uploadPath, fileName), err => {
+        if (err) console.log('file delete error:' + err);
+    });
+}
+
+module.exports.upload = upload;

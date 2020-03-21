@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const Joi = require('joi');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -7,6 +8,12 @@ const app = express();
 const PORT = 3000;
 const indexRoutes = require('./routes/index');
 const filmsRoute = require('./routes/film_routes');
+const adminRoute = require('./routes/admin_routes');
+
+const corsOptions = {
+    origin: 'http://localhost:4200/',
+    optionsSuccessStatus: 200
+}
 
 // Middlewares Routes Placed Here
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -18,10 +25,11 @@ app.use(session({
     saveUninitialized: true,
 }));
 
-
+app.use('/public', express.static('public'));
 app.use('/', indexRoutes);
-app.use('/Films', filmsRoute);
-
+app.use('/api/film', filmsRoute);
+app.use('/api/admin', adminRoute);
+app.use(cors(corsOptions));
 //Database Connection
 mongoose.connect('mongodb://localhost:27017/Theater', { useNewUrlParser: true, useUnifiedTopology: true });
 const db = mongoose.connection;
