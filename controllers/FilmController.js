@@ -144,7 +144,7 @@ exports.addFilm = async(req, res) => {
             console.log("1");
         } else {
             if (film.film_cover != null) {
-                removeFilmCover(film.film_cover);
+
             }
 
             res.json({
@@ -176,12 +176,12 @@ exports.addFilm = async(req, res) => {
 exports.updateFilmById = async(req, res) => {
     let film;
     let idFilm = req.params.idFilm;
-    const film_cover = req.file != null ? req.file.filename : null;
+
     try {
         film = await Film.findById(idFilm);
         let dataUpdated = {
             film_name: req.body.film_name,
-            film_cover: url + film_cover,
+            film_cover: req.body.film_cover,
             film_description: req.body.film_description,
             film_gender: req.body.film_gender,
             film_show_date: req.body.film_show_date,
