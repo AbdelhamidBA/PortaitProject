@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
-const Film = require('../models/TicketSchema');
+const Film = require('../models/FilmSchema');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const moment = require('moment');
 const imageMimeTypes = ['image/jpeg', 'image/png'];
-const uploadPath = path.join('public', Book.coverImageBasePath);
+const uploadPath = path.join('public', Film.coverImageBasePath);
 const upload = multer({
     dest: uploadPath,
     fileFilter: (req, file, callback) => {
@@ -120,22 +120,20 @@ exports.getFilmsByShowDate = async(req, res) => {
 
 exports.addFilm = async(req, res) => {
 
-    //Still Missing FileUpload
-    const film_cover = req.file != null ? req.file.filename : null;
-
     let filmToAdd = {
         film_name: req.body.film_name,
-        film_cover: url + film_cover,
+        film_cover: req.body.film_cover,
         film_description: req.body.film_description,
         film_gender: req.body.film_gender,
         film_show_date: req.body.film_show_date,
         film_duration: req.body.film_duration
     }
 
+
     let film = new Film(filmToAdd);
-    //saveFilmCover(film, req.body.film_cover);
+
     try {
-        let addError = Film.validSchemaForm(filmToAdd);
+        let addError = film.validSchemaForm(filmToAdd);
         if (addError.error == null) {
             let added = await film.save();
             res.json({
@@ -143,6 +141,7 @@ exports.addFilm = async(req, res) => {
                 message: `${added.film_name} Sucessfully Added`,
                 error: false
             });
+            console.log("1");
         } else {
             if (film.film_cover != null) {
                 removeFilmCover(film.film_cover);
@@ -153,6 +152,7 @@ exports.addFilm = async(req, res) => {
                 message: `${addError.error}`,
                 error: true
             });
+            console.log('2:' + addError);
         }
 
     } catch (err) {
@@ -161,6 +161,7 @@ exports.addFilm = async(req, res) => {
             message: err,
             error: true
         });
+        console.log('3:' + err);
     }
 }
 
@@ -269,8 +270,8 @@ exports.deleteFilmById = async(req, res) => {
  **
  */
 
-async function Recommender_SimilarFilm(idFilm) {
-    let idFilm = req.params.idFilm;
+async function Recommender_SimilarFilm(id) {
+    let idFilm = id;
     let filmgender;
     let listofFilms;
     try {
@@ -285,8 +286,8 @@ async function Recommender_SimilarFilm(idFilm) {
     }
 }
 
-async function Recommender_SimilarFilm(idFilm) {
-    let idFilm = req.params.idFilm;
+async function Recommender_SimilarFilm(id) {
+    let idFilm = id;
     let filmgender;
     let listofFilms;
     try {
@@ -301,8 +302,8 @@ async function Recommender_SimilarFilm(idFilm) {
     }
 }
 
-async function Recommender_LastVisited(idFilm) {
-    let idFilm = req.params.idFilm;
+async function Recommender_LastVisited(id) {
+    let idFilm = id;
     let filmgender;
     let listofFilms;
     try {

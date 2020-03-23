@@ -3,6 +3,7 @@ const cors = require('cors');
 const Joi = require('joi');
 const mongoose = require('mongoose');
 const session = require('express-session');
+const multer = require('multer');
 const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 3000;
@@ -16,8 +17,8 @@ const corsOptions = {
         optionsSuccessStatus: 200
     }
     // Middlewares Routes Placed Here
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ limit: '1000mb', extended: true }));
+app.use(express.json({ limit: '1000mb' }));
 app.use(cookieParser());
 app.use(session({
     secret: 'keyboard cat',
