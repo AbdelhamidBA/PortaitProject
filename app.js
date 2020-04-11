@@ -11,6 +11,8 @@ const indexRoutes = require('./routes/index');
 const filmsRoute = require('./routes/film_routes');
 const adminRoute = require('./routes/admin_routes');
 const signupRoute = require('./routes/SignUp_routes');
+const feedbackRoute = require('./routes/feedback_routes');
+
 
 const corsOptions = {
         origin: 'http://localhost:4200/',
@@ -28,12 +30,14 @@ app.use(session({
 
 app.use('/public', express.static('public'));
 app.use('/', indexRoutes);
+app.use('/api/feedback',feedbackRoute);
 app.use('/api/film', filmsRoute);
 app.use('/api/admin', adminRoute);
-app.use('/api/signup', signupRoute);
+app.use('/api/signup', signupRoute); 
 app.use(cors(corsOptions));
 //Database Connection
-mongoose.connect('mongodb://localhost:27017/Theater', { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: true });
+mongoose.connect("mongodb://localhost:27017/Theater"
+, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: true });
 const db = mongoose.connection;
 
 db.on('error', () => {

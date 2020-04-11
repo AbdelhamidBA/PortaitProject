@@ -74,14 +74,18 @@ exports.getUserByEmail = async (req,res)=>{
 
 exports.getUserByRole = async (req,res)=>{
     try{
-         let role = req.query.role;
+         let role = req.body.role;
          let roleSchema = Joi.string().trim();
          let validRole = await Joi.validate(role,roleSchema);
-         if(valid !== null){
+         if(validRole !== null){
             let allUser = await User.find()
             .where ('role').equals(role);
-            if(Object.keys(allUser).length == 0){
+            if(Object.keys(allUser).length !== 0){
                 res.json(allUser);
+            }
+            else{
+                res.json({message :"email dosent exist"});
+
             }
          }
          else{

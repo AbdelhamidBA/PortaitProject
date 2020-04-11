@@ -22,7 +22,7 @@ var FilmReviewSchema = new Schema({
         type: String,
         required: true
     }
-}, { collection: Film_Review });
+}, { collection: 'Film_Review' });
 
 FilmReviewSchema.methods.validSchemaForm = (obj) => {
     let validSchema = Joi.object().keys({

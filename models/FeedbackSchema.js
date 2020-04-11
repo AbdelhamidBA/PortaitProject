@@ -1,3 +1,5 @@
+const Feedbacks = require('../models/FeedbackSchema');
+
 const mongoose = require('mongoose');
 const Joi = require('joi');
 const Schema = mongoose.Schema;
