@@ -34,7 +34,7 @@ exports.getFilms = async(req, res) => {
                 searchFilter.film_gender = Filter.film_gender;
             }
         }
-        let listofFilms = await Film.find(searchFilter);
+        let listofFilms = await Film.find(searchFilter).sort({ _id: -1 });
         if (Object.keys(listofFilms).length !== 0) {
             res.json(listofFilms);
         } else {
@@ -259,21 +259,22 @@ exports.deleteFilmById = async(req, res) => {
  **
  */
 
-async function Recommender_SimilarFilm(id) {
-    let idFilm = id;
+exports.Recommender_SimilarFilm = async(req, res) => {
+    let idFilm = req.params.idFilm;
     let filmgender;
     let listofFilms;
     try {
         let film = await Film.findById(idFilm);
         if (Object.keys(film).length !== 0) {
             filmgender = film.film_gender;
-            listofFilms = getFilmByGender(filmgender);
-            return listofFilms;
+            listofFilms = await getFilmByGender(filmgender);
+            console.log(listofFilms);
+            res.json(listofFilms);
         }
-    } catch {
-        console.log("Error Recommender SimilarFilm");
+    } catch (err) {
+        console.log("Error Recommender SimilarFilm :" + err);
     }
-}
+};
 
 
 /*

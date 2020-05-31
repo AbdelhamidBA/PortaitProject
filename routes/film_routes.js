@@ -8,6 +8,7 @@ router.get('/update/:idFilm', FilmController.getFilmByID);
 router.put('/update/:idFilm', FilmController.updateFilmById);
 router.delete('/delete/:idFilm', FilmController.deleteFilmById);
 router.post('/addfilm', FilmController.addFilm);
+router.get('/:idFilm/gender', FilmController.Recommender_SimilarFilm)
 
 
 module.exports = router;
