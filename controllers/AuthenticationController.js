@@ -64,7 +64,7 @@ exports.login = async(req, res) => {
             let token = jwt.sign(payload, 'TheaterSecertKey');
             console.log(token);
             res.json({
-                user: { fullname: found.user_fullname, email: found.email, role: found.role, token: token },
+                user: { _id: found._id, fullname: found.user_fullname, email: found.email, role: found.role, token: token },
                 message: 'User Successfully Logged In',
                 error: false
             });
