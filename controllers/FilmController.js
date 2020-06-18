@@ -231,9 +231,9 @@ exports.deleteFilmById = async(req, res) => {
         //if it has sold tickets can't remove the film
         //else we delete the film and all its associated tickets
         filmname = film.film_name;
-        await film.remove();
+        let del = await film.remove();
         res.json({
-            film: filmUpdated,
+            film: del,
             message: `${filmname} Sucessfully Deleted`,
             error: false
         });

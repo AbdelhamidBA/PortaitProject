@@ -107,12 +107,25 @@ exports.AddUser = async(req, res) => {
         let addError = await user.validSchemaForm(add);
         if (addError.error == null) {
             let added = await user.save();
+            res.json({
+                user: added,
+                message: `${added.user_fullname} Sucessfully Added`,
+                error: false
+            });
+
         } else {
-            //res.render
-            console.log(addError);
+            res.json({
+                user: null,
+                message: `${addError.error}`,
+                error: true
+            });
         }
     } catch (err) {
-        console.log(err);
+        res.json({
+            user: null,
+            message: err,
+            error: true
+        });
     }
 }
 
@@ -121,16 +134,41 @@ exports.DeleteUser = async(req, res) => {
         let idUser = req.params.idUser;
         if (idUser != null) {
             let resultat = await User.findByIdAndDelete(idUser);
-            res.json(resultat);
+            res.json({
+                user: resultat,
+                message: `${resultat.user_fullname} Sucessfully Deleted`,
+                error: false
+            });
         } else {
-            console.error();
+            res.json({
+                user: null,
+                message: "There was an error during Deleting user",
+                error: true
+            });
         }
     } catch (err) {
-        res.json({ message: err });
+        res.json({
+            user: null,
+            message: err,
+            error: true
+        });
 
     }
 
 }
+
+
+exports.statistic = async(req, res) => {
+    try {
+
+        let x = await User.countDocuments();
+        console.log('Hello: ' + x);
+        res.json({ userstat: x });
+    } catch (err) {
+        console.log(err);
+    }
+}
+
 
 exports.UpdateUser = async(req, res) => {
 
@@ -144,19 +182,38 @@ exports.UpdateUser = async(req, res) => {
 
                 let up = await User.findByIdAndUpdate(idUser, { $set: updated });
                 if (Object.keys(up).length !== 0) {
-                    console.log('done');
+                    res.json({
+                        user: up,
+                        message: `${up.user_fullname} Sucessfully Updated`,
+                        error: false
+                    });
                 } else {
-                    console.log('sorry');
+                    res.json({
+                        user: null,
+                        message: "There was an error during updating user",
+                        error: true
+                    });
                 }
-                res.json(up);
+
             } else {
-                console.log(updatederror);
+                res.json({
+                    user: null,
+                    message: `${updatedError.error}`,
+                    error: true
+                });
             }
         } else {
-            console.log('no user found');
+            res.json({
+                user: null,
+                message: "No User Found With This Specific ID",
+                error: true
+            });
         }
     } catch (err) {
-        res.json({ message: err });
-        //console.log('erreur');
+        res.json({
+            user: null,
+            message: err,
+            error: true
+        });
     }
 }
