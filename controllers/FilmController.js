@@ -1,9 +1,12 @@
 const mongoose = require("mongoose");
 const Film = require("../models/FilmSchema");
+const SoldTicket = require('../models/SoldTicketSchema');
+const FilmTicket = require('../models/TicketSchema');
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const moment = require("moment");
+const SoldTicketSchema = require("../models/SoldTicketSchema");
 
 const url = "http://localhost:3000/public/";
 
@@ -277,6 +280,87 @@ exports.Recommender_SimilarFilm = async(req, res) => {
 };
 
 
+exports.FilmJustForYou = async(req, res) => {
+    let userID = req.params.idFilm;
+    let gender = [];
+    let bought = [];
+    let final = [];
+    let found = false;
+    let mostGender = "";
+    let mostValue;
+    try {
+        let soldFilm = await SoldTicket.find({ id_user: userID });
+        if (Object.keys(soldFilm).length !== 0) {
+            for (let sf of soldFilm) {
+                console.log(sf._id);
+                let ticket = await FilmTicket.findById(sf.id_ticket);
+                bought.push(ticket);
+                let film = await Film.findById(ticket.id_Film);
+                if (gender.length != 0) {
+                    gender.forEach(element => {
+                        if (element.gender == film.film_gender) {
+                            element.value += 1;
+                            found = true;
+                        }
+                    });
+                    if (found == false) {
+                        gender.push({
+                            gender: film.film_gender,
+                            value: 1
+                        });
+                    } else {
+                        found = false;
+                    }
+                } else {
+                    gender.push({
+                        gender: film.film_gender,
+                        value: 1
+                    });
+                }
+            }
+            mostGender = gender[0].gender;
+            mostValue = gender[0].value;
+
+            gender.forEach(element => {
+                console.log(element);
+                if (mostValue < element.value) {
+                    mostValue = element.value;
+                    mostGender = element.gender;
+                }
+            });
+            console.log("Most:" + mostGender);
+            let filmsGen = await getFilmByGender(mostGender);
+            for (let f of filmsGen) {
+                bought.forEach(element => {
+                    if (f._id.toString() == element.id_Film.toString()) {
+                        console.log("here");
+                        found = true;
+                    }
+                });
+                if (found == false) {
+                    final.push(f);
+                } else {
+                    found = false;
+                }
+
+            }
+            return res.json(final);
+
+
+
+        } else {
+            console.log("Empty");
+            return null;
+        }
+
+    } catch (err) {
+        console.log("Error FilmJustForYou :" + err);
+    }
+}
+
+
+
+
 /*
  **
  **
@@ -294,6 +378,22 @@ exports.countFilms = async(req, res) => {
         return -1;
     }
 };
+
+
+exports.addTrib = async(req, res) => {
+    try {
+        let data = {
+            id_ticket: '5eeb814fe620dd2cd49ad9ec',
+            id_user: '5eda2baf501ada3150c893e6',
+            date_sold: moment().format('YYYY-MM-DD HH:mm')
+        }
+        let obj = new SoldTicketSchema(data);
+        let add = await obj.save();
+        console.log('Done');
+    } catch (err) {
+        console.log("ADDTRIB:" + err);
+    }
+}
 
 /*
  **
